@@ -80,8 +80,9 @@ pub(crate) fn sys_create_webview(
 
     let mut init_script = r#"
       function post(name, data) {
-        window.ipc.postMessage(JSON.stringify(
-          { name, data: JSON.stringify(data) }));
+        // if name have `\u{1}` in it, it will be ignored
+        if (name.includes("\u{1}")) { return; }
+        window.ipc.postMessage(`${name}\u{1}${JSON.stringify(data)}`);
       }
 
       let __contextMenuEnabled = <<CTX_MENU_ENABLED>>;
