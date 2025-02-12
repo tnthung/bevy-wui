@@ -1,0 +1,4 @@
+/target
+
+# Ignore the main.rs as it's for development only
+src/main.rs
