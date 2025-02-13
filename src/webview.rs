@@ -79,7 +79,7 @@ pub(crate) fn sys_create_webview(
     let o_queue = Queue::default();
 
     let mut init_script = r#"
-      function post(name, data, uuid=null) {
+      async function post(name, data, uuid=null) {
         const systemEvents = ["kd", "ku", "md", "mu", "mm"];
 
         // if uuid is not matched, you have no permission to post message
