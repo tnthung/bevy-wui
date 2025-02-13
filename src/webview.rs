@@ -99,23 +99,16 @@ pub(crate) fn sys_create_webview(
       }
 
       class Protect {
-        constructor(toProtect) {
-          this.toProtect = toProtect;
-        }
+        #toProtect;
+
+        constructor(toProtect) { this.#toProtect = toProtect; }
+
+        get(uuid       ) { if (this.check(uuid)) return this.#toProtect; }
+        set(uuid, value) { if (this.check(uuid)) this.#toProtect = value; }
 
         check(uuid) {
           if (uuid === <<UUID>>) return true;
           console.error("You have no permission to access this property.");
-        }
-
-        get(uuid) {
-          if (this.check(uuid))
-            return this.toProtect;
-        }
-
-        set(uuid, value) {
-          if (this.check(uuid))
-            this.toProtect = value;
         }
       }
 
