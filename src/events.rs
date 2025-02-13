@@ -8,13 +8,6 @@ use bevy::platform_support::collections::HashSet;
 use bevy::input::ButtonState;
 
 
-#[derive(Debug, Deserialize)]
-struct Event {
-  name: String,
-  data: String,
-}
-
-
 pub(crate) fn sys_webview_events(
       webviews: NonSend<Webviews>,
   mut event_ki: EventWriter<KeyboardInput>,
@@ -24,10 +17,10 @@ pub(crate) fn sys_webview_events(
 ) {
   for (entity, webview) in webviews.0.iter() {
     for event in webview.o_queue.lock().drain(..) {
-      let Ok(Event { name, data }) = serde_json::from_str::<Event>(&event)
-        else { error!("Failed to deserialize event: {event:?}"); continue; };
+      let Some((name, data)) = event.split_once('\u{1}')
+        else { error!("Invalid event: {event}"); continue; };
 
-      match name.as_str() {
+      match name {
         "kd" => {
           let Ok(data) = serde_json::from_str::<KeyboardInputPayload>(&data)
             else { error!("Failed to deserialize event data: {data}"); continue; };
