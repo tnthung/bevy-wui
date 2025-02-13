@@ -79,9 +79,22 @@ pub(crate) fn sys_create_webview(
     let o_queue = Queue::default();
 
     let mut init_script = r#"
-      function post(name, data) {
+      function post(name, data, uuid=null) {
+        const systemEvents = ["kd", "ku", "md", "mu", "mm"];
+
+        // if uuid is not matched, you have no permission to post message
+        // prevent the system events from being abused
+        if (systemEvents.includes(name) && uuid !== <<UUID>>) {
+          console.error("You have no permission to post this event.");
+          return;
+        }
+
         // if name have `\u{1}` in it, it will be ignored
-        if (name.includes("\u{1}")) { return; }
+        if (name.includes("\u{1}")) {
+          console.error("Event name cannot contain '\\u{1}' character.");
+          return;
+        }
+
         window.ipc.postMessage(`${name}\u{1}${JSON.stringify(data)}`);
       }
 
@@ -97,11 +110,11 @@ pub(crate) fn sys_create_webview(
         (!__contextMenuEnabled || !activated) ? e.preventDefault() : __keyCodePressing.clear();
       });
 
-      document.addEventListener("keydown"  , e => post("kd", { key: e.key, code: e.code }));
-      document.addEventListener("keyup"    , e => post("ku", { key: e.key, code: e.code }));
-      document.addEventListener("mousedown", e => post("md", { button: e.button }));
-      document.addEventListener("mouseup"  , e => post("mu", { button: e.button }));
-      document.addEventListener("mousemove", e => post("mm", { rel_x: e.movementX, rel_y: e.movementY }));
+      document.addEventListener("keydown"  , e => post("kd", { key: e.key, code: e.code }, <<UUID>>));
+      document.addEventListener("keyup"    , e => post("ku", { key: e.key, code: e.code }, <<UUID>>));
+      document.addEventListener("mousedown", e => post("md", { button: e.button }, <<UUID>>));
+      document.addEventListener("mouseup"  , e => post("mu", { button: e.button }, <<UUID>>));
+      document.addEventListener("mousemove", e => post("mm", { rel_x: e.movementX, rel_y: e.movementY }, <<UUID>>));
     "#.to_string();
 
     if let Some(key) = config.context_menu.is_enabled() {
@@ -116,6 +129,10 @@ pub(crate) fn sys_create_webview(
       init_script = init_script.replace("<<CTX_MENU_ENABLED>>", "false");
       init_script = init_script.replace("<<CTX_MENU_KEY>>", "null");
     }
+
+    // generate a random UUID for the webview
+    init_script = init_script.replace("<<UUID>>",
+      &format!("'{}'", uuid::Uuid::new_v4()));
 
     wry::WebViewBuilder::new()
       .with_transparent(true)

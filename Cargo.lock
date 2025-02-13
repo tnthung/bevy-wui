@@ -321,6 +321,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tap",
+ "uuid",
  "wry",
 ]
 
