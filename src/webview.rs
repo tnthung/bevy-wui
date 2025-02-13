@@ -102,19 +102,19 @@ pub(crate) fn sys_create_webview(
       let __contextMenuKey     = <<CTX_MENU_KEY>>;
       let __keyCodePressing    = new Set();
 
-      document.addEventListener("keydown", e => __keyCodePressing.add   (e.code));
-      document.addEventListener("keyup"  , e => __keyCodePressing.delete(e.code));
+      window.addEventListener("keydown", e => __keyCodePressing.add   (e.code));
+      window.addEventListener("keyup"  , e => __keyCodePressing.delete(e.code));
 
-      document.addEventListener("contextmenu", e => {
+      window.addEventListener("contextmenu", e => {
         const activated = __contextMenuKey === null || __keyCodePressing.has(__contextMenuKey);
         (!__contextMenuEnabled || !activated) ? e.preventDefault() : __keyCodePressing.clear();
       });
 
-      document.addEventListener("keydown"  , e => post("kd", { key: e.key, code: e.code }, <<UUID>>));
-      document.addEventListener("keyup"    , e => post("ku", { key: e.key, code: e.code }, <<UUID>>));
-      document.addEventListener("mousedown", e => post("md", { button: e.button }, <<UUID>>));
-      document.addEventListener("mouseup"  , e => post("mu", { button: e.button }, <<UUID>>));
-      document.addEventListener("mousemove", e => post("mm", { rel_x: e.movementX, rel_y: e.movementY }, <<UUID>>));
+      window.addEventListener("keydown"  , e => post("kd", { key: e.key, code: e.code }, <<UUID>>));
+      window.addEventListener("keyup"    , e => post("ku", { key: e.key, code: e.code }, <<UUID>>));
+      window.addEventListener("mousedown", e => post("md", { button: e.button }, <<UUID>>));
+      window.addEventListener("mouseup"  , e => post("mu", { button: e.button }, <<UUID>>));
+      window.addEventListener("mousemove", e => post("mm", { rel_x: e.movementX, rel_y: e.movementY }, <<UUID>>));
     "#.to_string();
 
     if let Some(key) = config.context_menu.is_enabled() {
