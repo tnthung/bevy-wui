@@ -136,6 +136,7 @@ pub(crate) fn sys_create_webview(
 
     wry::WebViewBuilder::new()
       .with_transparent(true)
+      .with_background_throttling(wry::BackgroundThrottlingPolicy::Disabled)
       .with_devtools(config.devtools.is_enabled())
       // for the initialization script to work,
       // either `with_url` or `with_html` must be called
