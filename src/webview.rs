@@ -56,16 +56,16 @@ impl Webview {
 }
 
 
-struct WebviewHandle {
-  webview: wry::WebView,
-  i_queue: Queue<String>,   // input to webview
-  o_queue: Queue<String>,   // output from webview
+pub(crate) struct WebviewHandle {
+  pub webview: wry::WebView,
+  pub i_queue: Queue<String>,   // input to webview
+  pub o_queue: Queue<String>,   // output from webview
 }
 
 
 /// Storage for `Entity -> wry::WebView` mapping.
 #[derive(Default)]
-pub(crate) struct Webviews(EntityHashMap<WebviewHandle>);
+pub(crate) struct Webviews(pub EntityHashMap<WebviewHandle>);
 
 
 pub(crate) fn sys_create_webview(
@@ -79,9 +79,9 @@ pub(crate) fn sys_create_webview(
     let o_queue = Queue::default();
 
     let mut init_script = r#"
-      function post(event, data) {
-        window.ipc.postMessage(
-          JSON.stringify({ event, data }));
+      function post(name, data) {
+        window.ipc.postMessage(JSON.stringify(
+          { name, data: JSON.stringify(data) }));
       }
 
       let __contextMenuEnabled = <<CTX_MENU_ENABLED>>;
@@ -95,6 +95,12 @@ pub(crate) fn sys_create_webview(
         const activated = __contextMenuKey === null || __keyCodePressing.has(__contextMenuKey);
         (!__contextMenuEnabled || !activated) ? e.preventDefault() : __keyCodePressing.clear();
       });
+
+      document.addEventListener("keydown"  , e => post("kd", { key: e.key, code: e.code }));
+      document.addEventListener("keyup"    , e => post("ku", { key: e.key, code: e.code }));
+      document.addEventListener("mousedown", e => post("md", { button: e.button }));
+      document.addEventListener("mouseup"  , e => post("mu", { button: e.button }));
+      document.addEventListener("mousemove", e => post("mm", { rel_x: e.movementX, rel_y: e.movementY }));
     "#.to_string();
 
     if let Some(key) = config.context_menu.is_enabled() {
@@ -121,6 +127,7 @@ pub(crate) fn sys_create_webview(
         let o_queue = o_queue.clone();
         move |r| { o_queue.lock().push(r.body().clone()); }
       })
+      .with_focused(true)
       .build(hwnd)
       .map(|webview| WebviewHandle { webview, i_queue, o_queue })
   }
