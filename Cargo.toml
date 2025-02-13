@@ -1,0 +1,10 @@
+[package]
+name        = "bevy-wui"
+version     = "0.0.0"
+edition     = "2021"
+authors     = ["TNThung"]
+keywords    = ["bevy", "ui", "webview", "winit"]
+repository  = "https://github.com/tnthung/bevy-wui"
+description = "A integration of Webview for bevy to create HTML based UI"
+
+[dependencies]
