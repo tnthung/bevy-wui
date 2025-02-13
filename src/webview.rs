@@ -98,16 +98,40 @@ pub(crate) fn sys_create_webview(
         window.ipc.postMessage(`${name}\u{1}${JSON.stringify(data)}`);
       }
 
-      let __contextMenuEnabled = <<CTX_MENU_ENABLED>>;
-      let __contextMenuKey     = <<CTX_MENU_KEY>>;
-      let __keyCodePressing    = new Set();
+      class Protect {
+        constructor(toProtect) {
+          this.toProtect = toProtect;
+        }
 
-      window.addEventListener("keydown", e => __keyCodePressing.add   (e.code));
-      window.addEventListener("keyup"  , e => __keyCodePressing.delete(e.code));
+        check(uuid) {
+          if (uuid === <<UUID>>) return true;
+          console.error("You have no permission to access this property.");
+        }
+
+        get(uuid) {
+          if (this.check(uuid))
+            return this.toProtect;
+        }
+
+        set(uuid, value) {
+          if (this.check(uuid))
+            this.toProtect = value;
+        }
+      }
+
+      const __contextMenuEnabled = new Protect(<<CTX_MENU_ENABLED>>);
+      const __contextMenuKey     = new Protect(<<CTX_MENU_KEY>>);
+      const __keyCodePressing    = new Protect(new Set());
+
+      window.addEventListener("keydown", e => __keyCodePressing.get(<<UUID>>).add   (e.code));
+      window.addEventListener("keyup"  , e => __keyCodePressing.get(<<UUID>>).delete(e.code));
 
       window.addEventListener("contextmenu", e => {
-        const activated = __contextMenuKey === null || __keyCodePressing.has(__contextMenuKey);
-        (!__contextMenuEnabled || !activated) ? e.preventDefault() : __keyCodePressing.clear();
+        const pressing  = __keyCodePressing.get(<<UUID>>);
+        const enabled   = __contextMenuEnabled.get(<<UUID>>);
+        const key       = __contextMenuKey.get(<<UUID>>);
+        const activated = key === null || pressing.has(key);
+        (!enabled || !activated) ? e.preventDefault() : pressing.clear();
       });
 
       window.addEventListener("keydown"  , e => post("kd", { key: e.key, code: e.code }, <<UUID>>));
